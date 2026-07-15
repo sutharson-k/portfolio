@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sutharson · 作品集</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: #161625;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #container { display: flex; flex-direction: column; align-items: center; }
+    #status { color: #e0e0e0; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; margin-bottom: 10px; }
+    progress { width: 240px; }
+    canvas { border: 0; outline: none; background: #161625; max-width: 100vw; height: auto; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="status">正在加载作品集……</div>
+    <progress id="progress" value="0" max="100"></progress>
+    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  </div>
+  <script type="text/javascript">
+    var statusEl = document.getElementById('status');
+    var progressEl = document.getElementById('progress');
+    var Module = {
+      canvas: document.getElementById('canvas'),
+      setStatus: function (text) {
+        statusEl.textContent = text || '';
+      },
+      totalDependencies: 0,
+      monitorRunDependencies: function (left) {
+        this.totalDependencies = Math.max(this.totalDependencies, left);
+        progressEl.value = this.totalDependencies - left;
+        progressEl.max = this.totalDependencies;
+        if (left === 0) {
+          statusEl.style.display = 'none';
+          progressEl.style.display = 'none';
+        }
+      }
+    };
+    Module.setStatus('正在加载作品集……');
+    window.onerror = function () {
+      Module.setStatus('加载失败，请打开浏览器控制台查看详情。');
+    };
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>
