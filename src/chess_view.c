@@ -114,23 +114,23 @@ static int check_game_end(void) {
     char color = cv.game.state.turn;
     if (chess_is_checkmate(&cv.game.state, color)) {
         cv.gameOver = 1;
-        snprintf(cv.resultTitle, sizeof(cv.resultTitle), "%s获胜！", color == 'w' ? "黑方" : "白方");
-        strncpy(cv.resultMessage, "将死", sizeof(cv.resultMessage) - 1);
+        snprintf(cv.resultTitle, sizeof(cv.resultTitle), "%s Wins!", color == 'w' ? "Black" : "White");
+        strncpy(cv.resultMessage, "Checkmate", sizeof(cv.resultMessage) - 1);
         sound_play(SOUND_GAMEOVER);
         return 1;
     }
     if (chess_is_stalemate(&cv.game.state, color)) {
         cv.gameOver = 1;
-        strncpy(cv.resultTitle, "和棋！", sizeof(cv.resultTitle) - 1);
-        strncpy(cv.resultMessage, "逼和（无子可动）", sizeof(cv.resultMessage) - 1);
+        strncpy(cv.resultTitle, "Draw!", sizeof(cv.resultTitle) - 1);
+        strncpy(cv.resultMessage, "Stalemate - no legal moves", sizeof(cv.resultMessage) - 1);
         sound_play(SOUND_GAMEOVER);
         return 1;
     }
     if (chess_is_draw_full(&cv.game)) {
         cv.gameOver = 1;
-        strncpy(cv.resultTitle, "和棋！", sizeof(cv.resultTitle) - 1);
+        strncpy(cv.resultTitle, "Draw!", sizeof(cv.resultTitle) - 1);
         strncpy(cv.resultMessage,
-                cv.game.state.halfMoves >= 100 ? "五十步规则" : "子力不足 / 三次重复局面",
+                cv.game.state.halfMoves >= 100 ? "50-move rule" : "Insufficient material / threefold repetition",
                 sizeof(cv.resultMessage) - 1);
         sound_play(SOUND_GAMEOVER);
         return 1;
@@ -239,8 +239,8 @@ static void do_undo(void) {
 static void do_resign(void) {
     if (cv.gameOver) return;
     cv.gameOver = 1;
-    snprintf(cv.resultTitle, sizeof(cv.resultTitle), "%s获胜！", cv.playerColor == 'w' ? "黑方" : "白方");
-    strncpy(cv.resultMessage, "你认输了", sizeof(cv.resultMessage) - 1);
+    snprintf(cv.resultTitle, sizeof(cv.resultTitle), "%s Wins!", cv.playerColor == 'w' ? "Black" : "White");
+    strncpy(cv.resultMessage, "You resigned", sizeof(cv.resultMessage) - 1);
     sound_play(SOUND_GAMEOVER);
 }
 
@@ -255,11 +255,11 @@ static void do_draw_offer(void) {
     double drawChance = hasQueen ? (score < 200 ? 0.5 : 0.1) : (score < 100 ? 0.7 : 0.2);
     if (frand() < drawChance) {
         cv.gameOver = 1;
-        strncpy(cv.resultTitle, "和棋！", sizeof(cv.resultTitle) - 1);
-        strncpy(cv.resultMessage, "电脑接受了求和", sizeof(cv.resultMessage) - 1);
+        strncpy(cv.resultTitle, "Draw!", sizeof(cv.resultTitle) - 1);
+        strncpy(cv.resultMessage, "Computer accepted the draw", sizeof(cv.resultMessage) - 1);
         sound_play(SOUND_GAMEOVER);
     } else {
-        strncpy(cv.statusOverride, "电脑拒绝了求和", sizeof(cv.statusOverride) - 1);
+        strncpy(cv.statusOverride, "Computer declined the draw", sizeof(cv.statusOverride) - 1);
         cv.statusOverrideTimer = 2000;
     }
 }
@@ -343,21 +343,21 @@ static void render_start(SDL_Rect area) {
     ui_fill_rect(px, py, panelW, panelH, COLOR_PANEL);
     ui_stroke_rect(px, py, panelW, panelH, 1, COLOR_BORDER);
 
-    ui_draw_text_centered("国际象棋对战", px + panelW / 2, py + 24, 24, COLOR_TEXT);
-    ui_draw_text_centered("与内置 AI 对弈，无需联网", px + panelW / 2, py + 58, 14, COLOR_TEXT_DIM);
+    ui_draw_text_centered("Chess", px + panelW / 2, py + 24, 24, COLOR_TEXT);
+    ui_draw_text_centered("Play against a built-in AI - no internet required", px + panelW / 2, py + 58, 14, COLOR_TEXT_DIM);
 
-    ui_draw_text("选择执子颜色", px + 40, py + 100, 13, COLOR_TEXT_DIM2);
-    button((SDL_Rect){px + 40, py + 124, 150, 40}, "白方", cv.playerColor == 'w', 1, CV_ACT_SET_COLOR_WHITE, 0);
-    button((SDL_Rect){px + 210, py + 124, 150, 40}, "黑方", cv.playerColor == 'b', 1, CV_ACT_SET_COLOR_BLACK, 0);
+    ui_draw_text("Choose your color", px + 40, py + 100, 13, COLOR_TEXT_DIM2);
+    button((SDL_Rect){px + 40, py + 124, 150, 40}, "White", cv.playerColor == 'w', 1, CV_ACT_SET_COLOR_WHITE, 0);
+    button((SDL_Rect){px + 210, py + 124, 150, 40}, "Black", cv.playerColor == 'b', 1, CV_ACT_SET_COLOR_BLACK, 0);
 
-    ui_draw_text("选择难度", px + 40, py + 184, 13, COLOR_TEXT_DIM2);
-    button((SDL_Rect){px + 40, py + 208, 108, 40}, "简单", cv.difficulty == 2, 1, CV_ACT_SET_DIFFICULTY, 2);
-    button((SDL_Rect){px + 156, py + 208, 108, 40}, "中等", cv.difficulty == 3, 1, CV_ACT_SET_DIFFICULTY, 3);
-    button((SDL_Rect){px + 272, py + 208, 108, 40}, "困难", cv.difficulty == 4, 1, CV_ACT_SET_DIFFICULTY, 4);
+    ui_draw_text("Choose difficulty", px + 40, py + 184, 13, COLOR_TEXT_DIM2);
+    button((SDL_Rect){px + 40, py + 208, 108, 40}, "Easy", cv.difficulty == 2, 1, CV_ACT_SET_DIFFICULTY, 2);
+    button((SDL_Rect){px + 156, py + 208, 108, 40}, "Medium", cv.difficulty == 3, 1, CV_ACT_SET_DIFFICULTY, 3);
+    button((SDL_Rect){px + 272, py + 208, 108, 40}, "Hard", cv.difficulty == 4, 1, CV_ACT_SET_DIFFICULTY, 4);
 
     SDL_Rect startBtn = { px + 40, py + 280, panelW - 80, 50 };
     ui_fill_rect(startBtn.x, startBtn.y, startBtn.w, startBtn.h, COLOR_ACCENT);
-    ui_draw_text_centered("开始对局", startBtn.x + startBtn.w / 2, startBtn.y + 15, 18, (SDL_Color){15,31,26,255});
+    ui_draw_text_centered("Start Game", startBtn.x + startBtn.w / 2, startBtn.y + 15, 18, (SDL_Color){15,31,26,255});
     ui_hit_add(startBtn, CHESS_ACTION_BASE + CV_ACT_START_GAME, 0);
 }
 
@@ -365,7 +365,7 @@ static void render_bar(int x, int y, int w, int h, int isSelf, const char *captu
     ui_fill_rect(x, y, w, h, COLOR_PANEL2);
     ui_stroke_rect(x, y, w, h, 1, COLOR_BORDER);
     render_piece_chip(x + 20, y + h / 2, 12, 'k', isSelf ? cv.playerColor : (cv.playerColor == 'w' ? 'b' : 'w'));
-    ui_draw_text(isSelf ? "我" : "电脑", x + 40, y + h / 2 - 8, 14, COLOR_TEXT_DIM);
+    ui_draw_text(isSelf ? "Me" : "Computer", x + 40, y + h / 2 - 8, 14, COLOR_TEXT_DIM);
     int cx = x + w - 16;
     for (int i = 0; i < capturedCount && i < 12; i++) {
         render_piece_chip(cx, y + h / 2, 8, capturedLetters[i], capturedColor);
@@ -380,7 +380,7 @@ static void render_playing(SDL_Rect area) {
     int boardX = area.x + 36;
     int boardY = area.y + 84;
 
-    ui_draw_text("国际象棋对战", area.x + 36, area.y + 16, 20, COLOR_TEXT);
+    ui_draw_text("Chess", area.x + 36, area.y + 16, 20, COLOR_TEXT);
 
     render_bar(boardX, boardY - 40, boardSize, 34, 0,
                cv.game.state.capturedW, cv.game.state.capturedWCount, 'b');
@@ -438,7 +438,7 @@ static void render_playing(SDL_Rect area) {
     int panelH = boardSize + 80;
     ui_fill_rect(panelX, panelY, panelW, panelH, COLOR_PANEL2);
     ui_stroke_rect(panelX, panelY, panelW, panelH, 1, COLOR_BORDER);
-    ui_draw_text("着法记录", panelX + 10, panelY + 8, 13, COLOR_TEXT_DIM2);
+    ui_draw_text("Moves", panelX + 10, panelY + 8, 13, COLOR_TEXT_DIM2);
     int rowH = 20;
     int maxRows = (panelH - 36) / rowH;
     int startRow = cv.moveRowCount > maxRows ? cv.moveRowCount - maxRows : 0;
@@ -460,19 +460,33 @@ static void render_playing(SDL_Rect area) {
         status = cv.statusOverride;
     } else {
         int inCheck = chess_in_check(&cv.game.state, cv.game.state.turn);
-        snprintf(statusBuf, sizeof(statusBuf), "%s走棋%s", cv.game.state.turn == 'w' ? "白方" : "黑方", inCheck ? " — 将军！" : "");
+        snprintf(statusBuf, sizeof(statusBuf), "%s to move%s", cv.game.state.turn == 'w' ? "White" : "Black", inCheck ? " - Check!" : "");
         status = statusBuf;
     }
     ui_draw_text(status, boardX, ctrlY + 10, 15, COLOR_ACCENT);
 
-    int btnW = 84, btnH = 32, gap = 8;
-    int bx = boardX + boardSize - (btnW * 4 + gap * 3);
+    int btnH = 32, gap = 8, btnPad = 16;
     int canUndo = !cv.gameOver && !cv.isComputerTurn && cv.game.historyCount >= 2;
     int canAct = !cv.gameOver && !cv.isComputerTurn;
-    button((SDL_Rect){bx, ctrlY, btnW, btnH}, "求和", 0, canAct, CV_ACT_DRAW_OFFER, 0);
-    button((SDL_Rect){bx + (btnW + gap), ctrlY, btnW, btnH}, "悔棋", 0, canUndo, CV_ACT_UNDO, 0);
-    button((SDL_Rect){bx + (btnW + gap) * 2, ctrlY, btnW, btnH}, "认输", 0, !cv.gameOver, CV_ACT_RESIGN, 0);
-    button((SDL_Rect){bx + (btnW + gap) * 3, ctrlY, btnW, btnH}, "新对局", 0, 1, CV_ACT_NEW_GAME, 0);
+    struct { const char *label; int action; int enabled; } ctrlBtns[4] = {
+        { "Draw", CV_ACT_DRAW_OFFER, canAct },
+        { "Undo", CV_ACT_UNDO, canUndo },
+        { "Resign", CV_ACT_RESIGN, !cv.gameOver },
+        { "New Game", CV_ACT_NEW_GAME, 1 },
+    };
+    int ctrlWidths[4], ctrlTotalW = 0;
+    for (int i = 0; i < 4; i++) {
+        int tw, th;
+        ui_text_size(ctrlBtns[i].label, 16, &tw, &th);
+        ctrlWidths[i] = tw + btnPad * 2;
+        ctrlTotalW += ctrlWidths[i];
+    }
+    ctrlTotalW += gap * 3;
+    int bx = boardX + boardSize - ctrlTotalW;
+    for (int i = 0; i < 4; i++) {
+        button((SDL_Rect){bx, ctrlY, ctrlWidths[i], btnH}, ctrlBtns[i].label, 0, ctrlBtns[i].enabled, ctrlBtns[i].action, 0);
+        bx += ctrlWidths[i] + gap;
+    }
 
     if (cv.hasPendingPromotion) {
         ui_fill_rect(area.x, area.y, area.w, area.h, (SDL_Color){0,0,0,160});
@@ -480,7 +494,7 @@ static void render_playing(SDL_Rect area) {
         int mx = area.x + (area.w - mw) / 2, my = area.y + (area.h - mh) / 2;
         ui_fill_rect(mx, my, mw, mh, COLOR_PANEL);
         ui_stroke_rect(mx, my, mw, mh, 1, COLOR_BORDER2);
-        ui_draw_text_centered("选择升变棋子", mx + mw / 2, my + 16, 16, COLOR_TEXT);
+        ui_draw_text_centered("Choose promotion piece", mx + mw / 2, my + 16, 16, COLOR_TEXT);
         static const char letters[4] = {'q','r','b','n'};
         int cxStart = mx + 40;
         for (int i = 0; i < 4; i++) {
@@ -494,7 +508,7 @@ static void render_playing(SDL_Rect area) {
 
     if (cv.gameOver) {
         ui_fill_rect(area.x, area.y, area.w, area.h, (SDL_Color){0,0,0,170});
-        int mw = 360, mh = 180;
+        int mw = 480, mh = 180;
         int mx = area.x + (area.w - mw) / 2, my = area.y + (area.h - mh) / 2;
         ui_fill_rect(mx, my, mw, mh, COLOR_PANEL);
         ui_stroke_rect(mx, my, mw, mh, 1, COLOR_BORDER2);
@@ -502,7 +516,7 @@ static void render_playing(SDL_Rect area) {
         ui_draw_text_centered(cv.resultMessage, mx + mw / 2, my + 72, 15, COLOR_TEXT_DIM);
         SDL_Rect again = { mx + mw / 2 - 90, my + 116, 180, 44 };
         ui_fill_rect(again.x, again.y, again.w, again.h, COLOR_ACCENT);
-        ui_draw_text_centered("再来一局", again.x + again.w / 2, again.y + 13, 16, (SDL_Color){15,31,26,255});
+        ui_draw_text_centered("Play Again", again.x + again.w / 2, again.y + 13, 16, (SDL_Color){15,31,26,255});
         ui_hit_add(again, CHESS_ACTION_BASE + CV_ACT_PLAY_AGAIN, 0);
     }
 }

@@ -2,17 +2,17 @@
 #define DATA_H
 
 typedef struct {
-    const char *titleZh;     /* 中文标题 */
-    const char *descZh;      /* 中文简介，用 \n 手动换行（最多两行） */
-    const char *highlightZh; /* 一行核心亮点/特性 */
-    const char *tech;        /* 技术栈标签 */
-    const char *url;         /* GitHub 仓库链接 */
-    int isChess;             /* 1 表示这是可直接试玩的国际象棋项目 */
+    const char *title;     /* 项目标题 */
+    const char *desc;      /* 简介，用 \n 手动换行（最多两行） */
+    const char *highlight; /* 一行核心亮点/特性 */
+    const char *tech;      /* 技术栈标签 */
+    const char *url;       /* GitHub 仓库链接 */
+    int isChess;           /* 1 表示这是可直接试玩的国际象棋项目 */
 } Project;
 
 typedef struct {
-    const char *categoryZh;
-    const char *itemsZh;   /* 用 \n 手动换行 */
+    const char *category;
+    const char *items;   /* 用 \n 手动换行 */
 } SkillGroup;
 
 extern const Project PROJECTS[];

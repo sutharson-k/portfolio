@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sutharson · 作品集</title>
+  <title>Sutharson - Portfolio</title>
   <style>
     /* 画布固定为编译时写死的逻辑分辨率（1200x820），不做 CSS 缩放——
        C 代码里的所有坐标、点击命中区域都是按这个分辨率硬编码的。
@@ -27,7 +27,7 @@
 </head>
 <body>
   <div id="container">
-    <div id="status">正在加载作品集……</div>
+    <div id="status">Loading portfolio...</div>
     <progress id="progress" value="0" max="100"></progress>
     <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
   </div>
@@ -50,9 +50,9 @@
         }
       }
     };
-    Module.setStatus('正在加载作品集……');
+    Module.setStatus('Loading portfolio...');
     window.onerror = function () {
-      Module.setStatus('加载失败，请打开浏览器控制台查看详情。');
+      Module.setStatus('Failed to load. Open the browser console for details.');
     };
   </script>
   {{{ SCRIPT }}}

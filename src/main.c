@@ -1,8 +1,8 @@
 /* 个人作品集网站 —— 应用外壳：顶部导航 + 首页/项目/技能/联系四个页面，
    以及内嵌的国际象棋试玩页面（见 chess_view.c）。
-   全部界面文字使用中文；除浏览器 URL 跳转与音频播放这两个必须调用
-   Web API 的桥接点（见 ui.c 的 platform_open_url 与 sound.c）外，
-   不包含任何手写的 JavaScript/HTML 逻辑。 */
+   页面正文一律使用英文（仅本文件及其余源码的注释保留中文）；除浏览器
+   URL 跳转与音频播放这两个必须调用 Web API 的桥接点（见 ui.c 的
+   platform_open_url 与 sound.c）外，不包含任何手写的 JavaScript/HTML 逻辑。 */
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #ifdef __EMSCRIPTEN__
@@ -66,20 +66,28 @@ static void render_nav(void) {
     SDL_RenderDrawLine(g_renderer, 0, NAV_HEIGHT - 1, CANVAS_W, NAV_HEIGHT - 1);
 
     ui_draw_text("SUTHARSON", 24, 18, 22, COLOR_ACCENT);
-    ui_draw_text("作品集", 176, 22, 14, COLOR_TEXT_DIM2);
+    ui_draw_text("Portfolio", 176, 22, 14, COLOR_TEXT_DIM2);
 
     struct { const char *label; int action; Screen screen; } items[] = {
-        { "首页", ACT_NAV_HOME, SCREEN_HOME },
-        { "项目", ACT_NAV_PROJECTS, SCREEN_PROJECTS },
-        { "技能", ACT_NAV_SKILLS, SCREEN_SKILLS },
-        { "联系", ACT_NAV_CONTACT, SCREEN_CONTACT },
+        { "Home", ACT_NAV_HOME, SCREEN_HOME },
+        { "Projects", ACT_NAV_PROJECTS, SCREEN_PROJECTS },
+        { "Skills", ACT_NAV_SKILLS, SCREEN_SKILLS },
+        { "Contact", ACT_NAV_CONTACT, SCREEN_CONTACT },
     };
     Screen visualActive = g_screen == SCREEN_CHESS ? SCREEN_PROJECTS : g_screen;
-    int btnW = 84, btnH = 40;
-    int x = CANVAS_W - 24 - btnW * 4 - 12 * 3;
+    int btnH = 40, gap = 12, pad = 20;
+    int widths[4], totalW = 0;
+    for (int i = 0; i < 4; i++) {
+        int tw, th;
+        ui_text_size(items[i].label, 16, &tw, &th);
+        widths[i] = tw + pad * 2;
+        totalW += widths[i];
+    }
+    totalW += gap * 3;
+    int x = CANVAS_W - 24 - totalW;
     for (int i = 0; i < 4; i++) {
         int active = visualActive == items[i].screen;
-        SDL_Rect r = { x + i * (btnW + 12), (NAV_HEIGHT - btnH) / 2, btnW, btnH };
+        SDL_Rect r = { x, (NAV_HEIGHT - btnH) / 2, widths[i], btnH };
         if (active) {
             ui_fill_rect(r.x, r.y, r.w, r.h, (SDL_Color){0x4e,0xcc,0xa3,35});
             ui_stroke_rect(r.x, r.y, r.w, r.h, 1, COLOR_ACCENT);
@@ -87,6 +95,7 @@ static void render_nav(void) {
         ui_draw_text_centered(items[i].label, r.x + r.w / 2, r.y + r.h / 2 - 9,
                                16, active ? COLOR_ACCENT : COLOR_TEXT_DIM);
         ui_hit_add(r, items[i].action, 0);
+        x += widths[i] + gap;
     }
 }
 
@@ -159,23 +168,23 @@ static void render_home(SDL_Rect area) {
 static void render_project_card(SDL_Rect r, const Project *p) {
     ui_fill_rect(r.x, r.y, r.w, r.h, COLOR_PANEL2);
     ui_stroke_rect(r.x, r.y, r.w, r.h, 1, COLOR_BORDER);
-    ui_draw_text(p->titleZh, r.x + 16, r.y + 14, 17, COLOR_TEXT);
-    ui_draw_multiline(p->descZh, r.x + 16, r.y + 46, 13, COLOR_TEXT_DIM, 20);
-    ui_draw_text(p->highlightZh, r.x + 16, r.y + 90, 12, COLOR_ACCENT);
+    ui_draw_text(p->title, r.x + 16, r.y + 14, 17, COLOR_TEXT);
+    ui_draw_multiline(p->desc, r.x + 16, r.y + 46, 13, COLOR_TEXT_DIM, 20);
+    ui_draw_text(p->highlight, r.x + 16, r.y + 90, 12, COLOR_ACCENT);
     ui_draw_text(p->tech, r.x + 16, r.y + r.h - 54, 12, COLOR_TEXT_DIM2);
 
     SDL_Rect btn = { r.x + 16, r.y + r.h - 38, r.w - 32, 28 };
     int isChess = p->isChess;
     ui_fill_rect(btn.x, btn.y, btn.w, btn.h, isChess ? COLOR_ACCENT : COLOR_PANEL);
     ui_stroke_rect(btn.x, btn.y, btn.w, btn.h, 1, isChess ? COLOR_ACCENT : COLOR_BORDER2);
-    ui_draw_text_centered(isChess ? "立即试玩" : "查看源码", btn.x + btn.w / 2, btn.y + 6, 13,
+    ui_draw_text_centered(isChess ? "Play Now" : "View Source", btn.x + btn.w / 2, btn.y + 6, 13,
                            isChess ? (SDL_Color){15,31,26,255} : COLOR_TEXT_DIM);
     ui_hit_add(r, isChess ? ACT_PROJECT_PLAY_CHESS : ACT_PROJECT_OPEN, isChess ? 0 : (int)(p - PROJECTS));
 }
 
 static void render_projects(SDL_Rect area) {
-    ui_draw_text("项目", area.x + 20, area.y + 20, 26, COLOR_TEXT);
-    ui_draw_text("精选自 github.com/sutharson-k 的已完成项目", area.x + 20, area.y + 56, 14, COLOR_TEXT_DIM2);
+    ui_draw_text("Projects", area.x + 20, area.y + 20, 26, COLOR_TEXT);
+    ui_draw_text("Selected completed projects from github.com/sutharson-k", area.x + 20, area.y + 56, 14, COLOR_TEXT_DIM2);
 
     int cols = 3;
     int gap = 20;
@@ -204,34 +213,34 @@ static void render_projects(SDL_Rect area) {
 }
 
 static void render_skills(SDL_Rect area) {
-    ui_draw_text("技能", area.x + 20, area.y + 20, 26, COLOR_TEXT);
-    ui_draw_text("从这些项目中用到、练到的技术", area.x + 20, area.y + 56, 14, COLOR_TEXT_DIM2);
+    ui_draw_text("Skills", area.x + 20, area.y + 20, 26, COLOR_TEXT);
+    ui_draw_text("Technologies used and practiced across these projects", area.x + 20, area.y + 56, 14, COLOR_TEXT_DIM2);
 
     int y = area.y + 110;
     for (int i = 0; i < SKILL_GROUP_COUNT; i++) {
         SDL_Rect panel = { area.x + 20, y, area.w - 40, 100 };
         ui_fill_rect(panel.x, panel.y, panel.w, panel.h, COLOR_PANEL2);
         ui_stroke_rect(panel.x, panel.y, panel.w, panel.h, 1, COLOR_BORDER);
-        ui_draw_text(SKILL_GROUPS[i].categoryZh, panel.x + 20, panel.y + 16, 16, COLOR_ACCENT);
-        ui_draw_multiline(SKILL_GROUPS[i].itemsZh, panel.x + 20, panel.y + 48, 15, COLOR_TEXT, 26);
+        ui_draw_text(SKILL_GROUPS[i].category, panel.x + 20, panel.y + 16, 16, COLOR_ACCENT);
+        ui_draw_multiline(SKILL_GROUPS[i].items, panel.x + 20, panel.y + 48, 15, COLOR_TEXT, 26);
         y += 100 + 16;
     }
 }
 
 static void render_contact(SDL_Rect area) {
     int cx = area.x + area.w / 2;
-    ui_draw_text_centered("联系方式", cx, area.y + 80, 26, COLOR_TEXT);
-    ui_draw_text_centered("欢迎通过以下方式与我联系", cx, area.y + 118, 14, COLOR_TEXT_DIM2);
+    ui_draw_text_centered("Contact", cx, area.y + 80, 26, COLOR_TEXT);
+    ui_draw_text_centered("Feel free to reach out through either of these", cx, area.y + 118, 14, COLOR_TEXT_DIM2);
 
     SDL_Rect emailBtn = { cx - 160, area.y + 180, 320, 52 };
     ui_fill_rect(emailBtn.x, emailBtn.y, emailBtn.w, emailBtn.h, COLOR_PANEL2);
     ui_stroke_rect(emailBtn.x, emailBtn.y, emailBtn.w, emailBtn.h, 1, COLOR_BORDER2);
-    ui_draw_text_centered("邮箱：" CONTACT_EMAIL, emailBtn.x + emailBtn.w / 2, emailBtn.y + 17, 15, COLOR_TEXT);
+    ui_draw_text_centered("Email: " CONTACT_EMAIL, emailBtn.x + emailBtn.w / 2, emailBtn.y + 17, 15, COLOR_TEXT);
     ui_hit_add(emailBtn, ACT_CONTACT_EMAIL, 0);
 
     SDL_Rect ghBtn = { cx - 160, area.y + 246, 320, 52 };
     ui_fill_rect(ghBtn.x, ghBtn.y, ghBtn.w, ghBtn.h, COLOR_ACCENT);
-    ui_draw_text_centered("GitHub：github.com/sutharson-k", ghBtn.x + ghBtn.w / 2, ghBtn.y + 17, 15, (SDL_Color){15,31,26,255});
+    ui_draw_text_centered("GitHub: github.com/sutharson-k", ghBtn.x + ghBtn.w / 2, ghBtn.y + 17, 15, (SDL_Color){15,31,26,255});
     ui_hit_add(ghBtn, ACT_CONTACT_GITHUB, 0);
 }
 
@@ -290,7 +299,7 @@ int main(int argc, char **argv) {
     srand((unsigned int)time(NULL));
 
     SDL_Init(SDL_INIT_VIDEO);
-    g_window = SDL_CreateWindow("Sutharson · 作品集", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    g_window = SDL_CreateWindow("Sutharson - Portfolio", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                  CANVAS_W, CANVAS_H, SDL_WINDOW_SHOWN);
     g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
 
