@@ -25,7 +25,7 @@ typedef enum { SCREEN_HOME, SCREEN_PROJECTS, SCREEN_SKILLS, SCREEN_CONTACT, SCRE
 enum {
     ACT_NAV_HOME = 1, ACT_NAV_PROJECTS, ACT_NAV_SKILLS, ACT_NAV_CONTACT,
     ACT_HOME_VIEW_PROJECTS, ACT_HOME_GITHUB,
-    ACT_PROJECT_OPEN, ACT_PROJECT_PLAY_CHESS,
+    ACT_PROJECT_OPEN, ACT_PROJECT_OPEN_ACTION, ACT_PROJECT_PLAY_CHESS,
     ACT_CONTACT_EMAIL, ACT_CONTACT_GITHUB,
 };
 
@@ -50,6 +50,10 @@ static void dispatch_action(int action, int data) {
         case ACT_HOME_GITHUB: platform_open_url(CONTACT_GITHUB); break;
         case ACT_PROJECT_OPEN:
             if (data >= 0 && data < PROJECT_COUNT) platform_open_url(PROJECTS[data].url);
+            break;
+        case ACT_PROJECT_OPEN_ACTION:
+            if (data >= 0 && data < PROJECT_COUNT && PROJECTS[data].actionUrl)
+                platform_open_url(PROJECTS[data].actionUrl);
             break;
         case ACT_PROJECT_PLAY_CHESS:
             g_screen = SCREEN_CHESS;
@@ -173,13 +177,24 @@ static void render_project_card(SDL_Rect r, const Project *p) {
     ui_draw_text(p->highlight, r.x + 16, r.y + 90, 12, COLOR_ACCENT);
     ui_draw_text(p->tech, r.x + 16, r.y + r.h - 54, 12, COLOR_TEXT_DIM2);
 
-    SDL_Rect btn = { r.x + 16, r.y + r.h - 38, r.w - 32, 28 };
-    int isChess = p->isChess;
-    ui_fill_rect(btn.x, btn.y, btn.w, btn.h, isChess ? COLOR_ACCENT : COLOR_PANEL);
-    ui_stroke_rect(btn.x, btn.y, btn.w, btn.h, 1, isChess ? COLOR_ACCENT : COLOR_BORDER2);
-    ui_draw_text_centered(isChess ? "Play Now" : "View Source", btn.x + btn.w / 2, btn.y + 6, 13,
-                           isChess ? (SDL_Color){15,31,26,255} : COLOR_TEXT_DIM);
-    ui_hit_add(r, isChess ? ACT_PROJECT_PLAY_CHESS : ACT_PROJECT_OPEN, isChess ? 0 : (int)(p - PROJECTS));
+    int idx = (int)(p - PROJECTS);
+    int btnY = r.y + r.h - 38, btnH = 28, gap = 8;
+    int btnW = (r.w - 32 - gap) / 2;
+
+    /* 左：View Source，永远指向仓库根目录 */
+    SDL_Rect srcBtn = { r.x + 16, btnY, btnW, btnH };
+    ui_fill_rect(srcBtn.x, srcBtn.y, srcBtn.w, srcBtn.h, COLOR_PANEL);
+    ui_stroke_rect(srcBtn.x, srcBtn.y, srcBtn.w, srcBtn.h, 1, COLOR_BORDER2);
+    ui_draw_text_centered("View Source", srcBtn.x + srcBtn.w / 2, srcBtn.y + 6, 13, COLOR_TEXT_DIM);
+    ui_hit_add(srcBtn, ACT_PROJECT_OPEN, idx);
+
+    /* 右：第二个动作——国际象棋是站内试玩，其余打开 actionUrl（真实演示/
+       发布页，没有的话是仓库 README，绝不编造链接） */
+    SDL_Rect actBtn = { srcBtn.x + btnW + gap, btnY, btnW, btnH };
+    ui_fill_rect(actBtn.x, actBtn.y, actBtn.w, actBtn.h, COLOR_ACCENT);
+    ui_stroke_rect(actBtn.x, actBtn.y, actBtn.w, actBtn.h, 1, COLOR_ACCENT);
+    ui_draw_text_centered(p->actionLabel, actBtn.x + actBtn.w / 2, actBtn.y + 6, 13, (SDL_Color){15,31,26,255});
+    ui_hit_add(actBtn, p->isChess ? ACT_PROJECT_PLAY_CHESS : ACT_PROJECT_OPEN_ACTION, idx);
 }
 
 static void render_projects(SDL_Rect area) {

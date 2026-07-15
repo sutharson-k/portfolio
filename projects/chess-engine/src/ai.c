@@ -5,6 +5,14 @@
 #include "ai.h"
 
 #define AI_INF 1000000000
+/* 硬性节点预算：不管难度/分支因子如何，单次 ai_get_best_move 调用最多
+   访问这么多节点就强制停止继续递归、直接返回静态评估值。没有这个上限，
+   在没有开局库命中的局面下（也就是走过一两步之后）极小极大搜索加上
+   静态搜索的组合在最坏情况下可能几秒甚至更久才返回，期间浏览器主线程
+   完全被占满、页面无法重绘——这正是"AI 走一步就卡住"的成因：第一步命中
+   开局库瞬间返回，第二步开始真正搜索就直接把标签页卡死了。 */
+#define NODE_BUDGET 120000
+static long g_nodeCount;
 
 static const int PIECE_VALUES[128] = { ['p']=100, ['n']=320, ['b']=330, ['r']=500, ['q']=900, ['k']=20000 };
 
@@ -133,7 +141,7 @@ static int cmp_captures_desc(const void *a, const void *b) {
 
 static int quiescence(const ChessState *s, int alpha, int beta, int isMaximizing, int depth) {
     int standPat = evaluate(s);
-    if (depth > 6) return standPat;
+    if (depth > 6 || ++g_nodeCount > NODE_BUDGET) return standPat;
 
     if (isMaximizing) {
         if (standPat >= beta) return beta;
@@ -172,6 +180,7 @@ static int quiescence(const ChessState *s, int alpha, int beta, int isMaximizing
 }
 
 static int minimax(const ChessState *s, int depth, int alpha, int beta, int isMaximizing, char aiColor, int maxDepth) {
+    if (++g_nodeCount > NODE_BUDGET) return evaluate(s);
     if (depth == 0) return quiescence(s, alpha, beta, isMaximizing, 0);
 
     Move moves[MAX_MOVES];
@@ -252,6 +261,8 @@ int ai_get_best_move(ChessAI *ai, const Chess *game, Move *out) {
     const ChessState *s = &game->state;
 
     if (try_book_move(s, out)) return 1;
+
+    g_nodeCount = 0;
 
     Move moves[MAX_MOVES];
     int n = chess_get_all_legal_moves(s, s->turn, moves);
