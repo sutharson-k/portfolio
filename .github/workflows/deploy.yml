@@ -1,0 +1,52 @@
+name: Build and deploy portfolio
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 本地开发默认用 Windows 自带的微软雅黑，但那是专有字体，不能塞进
+      # 公开发布的产物里。CI 里改用开源、可自由分发的 Noto Sans CJK。
+      - name: Install open-license Chinese font (Noto Sans CJK)
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+
+      - name: Install Emscripten SDK
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+
+      - name: Build
+        run: |
+          source emsdk/emsdk_env.sh
+          CHESS_FONT_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc bash build.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
