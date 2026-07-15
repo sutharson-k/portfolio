@@ -1,4 +1,4 @@
-# 构建脚本（PowerShell 版）：将 C 源码编译为 WebAssembly + 胶水 JS（由 Emscripten 自动生成）。
+﻿# 构建脚本（PowerShell 版）：将 C 源码编译为 WebAssembly + 胶水 JS（由 Emscripten 自动生成）。
 # 需要预先安装并激活 Emscripten SDK：https://emscripten.org/docs/getting_started/downloads.html
 #   git clone https://github.com/emscripten-core/emsdk.git
 #   cd emsdk; .\emsdk install latest; .\emsdk activate latest; .\emsdk_env.ps1
